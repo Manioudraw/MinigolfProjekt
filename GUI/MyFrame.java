@@ -1,6 +1,6 @@
 package GUI;
 
-import java.awt.Component;
+// import java.awt.Component;
 
 import javax.swing.*;
 
@@ -15,9 +15,9 @@ public class MyFrame extends JFrame
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		
 		this.add(panel);
-		//Pack wird benötigt, um das Fenster zu kreieren.
+		//Pack wird benï¿½tigt, um das Fenster zu kreieren.
 		this.pack();
-		//Fenster wird mittig geöffnet.
+		//Fenster wird mittig geï¿½ffnet.
 		this.setLocationRelativeTo(null);
 		this.setVisible(true);
 	}
