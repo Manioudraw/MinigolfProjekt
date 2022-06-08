@@ -1,22 +1,36 @@
 package src;
 
-import java.io.IOException;
-
 public class Game{
     public static void main(String[] args) {
         System.out.println("Spiel gestartet!");
-        test();
+        //test();
+        Leaderboard lb = new Leaderboard();
+        AbstractPlayer[] ap = new AbstractPlayer[3];
+        
+        //lb.startGameWith();
     }
 
     private static void test() {
-        SpielFeld sp = new SpielFeld(20,10);
-        sp.draw(0, 0, 5, 10, '0');
-        sp.print();
         try {
             Leaderboard lb = new Leaderboard();
-            lb.write("Peter");
-            System.out.println("Peter hat so oft \"gewonnen\": " + lb.getWinCounterOrFile("Peter"));
-        } catch (IOException e) {
+            AbstractPlayer[] spieler = new Player[3]; 
+
+            spieler[0] = new Player("Peter", 'p');
+            spieler[1] = new Player("Gunther", 'g');
+            spieler[2] = new Player("Herbert", 'h');
+
+            lb.startGameWith(spieler);
+            spieler[0]. setHits(5);
+            spieler[1]. setHits(0);
+            spieler[2]. setHits(2);
+            lb.writeMultiple(spieler, new boolean[] {true,false,false});
+
+            System.out.println("Was ein Chaos: ");
+            if (!lb.getFile().isEmpty()) {
+                System.out.println(lb.getItemsFromFile(spieler[0].getName()) [0]);
+                // System.out.println(lb.getKD(spieler[0]));
+            }
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }

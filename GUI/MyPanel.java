@@ -16,9 +16,11 @@ public class MyPanel extends JPanel implements MouseListener, MouseMotionListene
 	//Variablen f�r die 2 Positionen der Maus, um die Linie zu zeichnen
 	private int startX, startY, endX, endY;
 	//Variablen f�r die Bewegung des Balls
-	private int x = 80, y = 130, geschwX = 0, geschwY = 0;
+	private int x = 80, y = 130;
+	//Variablen für Geschwindigkeit des Balls in Fließkommzahl für "genauere" Bewegung
+	private double geschwX = 0.0, geschwY = 0.0;
 	//Variablen für die Fenstergröße:
-	private int width = 1525, height = 785, bahnCounter=0;
+	private int width = 1525, height = 785, bahnCounter=0, lochCounter=0;
 	
 	ArrayList<Bande> banden = new ArrayList<Bande>();
 	ArrayList<Bande> löcher = new ArrayList<Bande>();
@@ -55,22 +57,22 @@ public class MyPanel extends JPanel implements MouseListener, MouseMotionListene
 
 
         //Bahn 1 erstellen
-        rechteckErstellen(20, 20, 500, 250, g); //Bahn
-        rundesRechteckErstellen(447, 130, 32, 32, 40, 40, g, "loch"); //Loch
+        this.banden.add(rechteckErstellen(20, 20, 500, 250, g)); //Bahn
+        this.löcher.add(rundesRechteckErstellen(447, 130, 32, 32, 40, 40, g, "loch")); //Loch
 		this.banden.get(0).x = 80;
 		this.banden.get(0).y = 130;
 
         //Bahn 2 erstellen
-        rechteckErstellen(20, 300, 500, 400, g); //Bahn
-        rundesRechteckErstellen(447, 630, 32, 32, 40, 40, g, "loch"); //Loch
-        rundesRechteckErstellen(140, 450, 250, 100, 90, 90, g, "wasser"); //Wasser
+        this.banden.add(rechteckErstellen(20, 300, 500, 400, g)); //Bahn
+        this.löcher.add(rundesRechteckErstellen(140, 450, 250, 100, 90, 90, g, "wasser")); //TODO: Wasser
+        this.löcher.add(rundesRechteckErstellen(447, 630, 32, 32, 40, 40, g, "loch")); //Loch
 		this.banden.get(1).x = 80;
 		this.banden.get(1).y = 330;
 
         //Bahn 3 erstellen
-        rechteckErstellen(550, 20, 200, 450, g); //Bahnstück 1
-        rechteckErstellen(550, 280, 650, 200, g); //Bahnstück 2
-        rundesRechteckErstellen(1130, 365, 32, 32, 40, 40, g, "loch"); //Loch
+        this.banden.add(rechteckErstellen(550, 20, 200, 450, g)); //Bahnstück 1
+        this.banden.get(2).second = rechteckErstellen(550, 280, 650, 200, g); //Bahnstück 2
+        this.löcher.add(rundesRechteckErstellen(1130, 365, 32, 32, 40, 40, g, "loch")); //Loch
 		this.banden.get(2).x = 650;
 		this.banden.get(2).y = 60; // TODO: werte anpassen lol
 
@@ -93,11 +95,9 @@ public class MyPanel extends JPanel implements MouseListener, MouseMotionListene
         g2D.drawLine(startX, startY, endX, endY);
 	}
 
-	public void rechteckErstellen(double x, double y, double height, double width, Graphics g)
+	public Bande rechteckErstellen(double x, double y, double height, double width, Graphics g)
     {
         Graphics2D g2D = (Graphics2D) g;
-
-		this.banden.add(new Bande(x, y, height, width));
 
         Rectangle2D.Double bande = new Rectangle2D.Double(x, y, height, width);
         Rectangle2D.Double gras = new Rectangle2D.Double(x+20, y+20, height-40, width-40);
@@ -109,37 +109,47 @@ public class MyPanel extends JPanel implements MouseListener, MouseMotionListene
         g2D.setColor(new Color(144, 238, 144));
         g2D.fill(gras);
         g2D.draw(gras);
+
+		return new Bande(x, y, height, width, 'b');
     }
 
-    public void rundesRechteckErstellen(double x, double y, double height, double width, double arcw, double arch, Graphics g, String s)
+    public Bande rundesRechteckErstellen(double x, double y, double height, double width, double arcw, double arch, Graphics g, String s)
     {
         Graphics2D g2D = (Graphics2D) g;
 
         RoundRectangle2D.Double lochOderWasser = new RoundRectangle2D.Double(x, y, height, width, arcw, arch);
 
+		Bande result = new Bande(x, y, height, width, 'l'); 
+
         if (s == "loch")
         {
-			this.löcher.add(new Bande(x, y, height, width));
             g2D.setColor(new Color(0, 139, 69));
         }
         else if (s == "wasser")
         {
             g2D.setColor(new Color(30, 144, 255));
+			result.type = 'w';
         }
 
         g2D.fill(lochOderWasser);
         g2D.draw(lochOderWasser);
+
+		return result;
     }
 
 
 	public void nextCourse() {
 		this.bahnCounter++;
+		this.lochCounter++;
 		if (this.bahnCounter > 2) {
 			this.bahnCounter = 0;
 		}
+		if (this.lochCounter > 3) {
+			this.lochCounter = 0;
+		}
 		// Teleportiert den Ball zum neuen Startpunkt:
-		this.x = this.banden.get(bahnCounter).x;
-		this.y = this.banden.get(bahnCounter).y;
+		this.x = (int) this.banden.get(bahnCounter).x;
+		this.y = (int) this.banden.get(bahnCounter).y;
 
 		geschwX = 0;
 		geschwY = 0;
@@ -179,19 +189,23 @@ public class MyPanel extends JPanel implements MouseListener, MouseMotionListene
 	@Override
 	public void actionPerformed(ActionEvent e) 
 	{
+		if (this.banden.isEmpty() || this.löcher.isEmpty()) { // "Wartet" bis alles fertig gerendert ist
+			return;
+		}
+
 		if(this.invertX())
 		{
 			geschwX = geschwX * -1;
 		}
 		
-		x = x + geschwX;
+		x = (int) Math.floor(x + geschwX);
 		
 		if(this.invertY()) 
 		{
 			geschwY = geschwY * -1;
 		}
 
-		y = y + geschwY;
+		y = (int) Math.floor(y + geschwY);
 		
 		geschwReduzieren();
 		
@@ -204,44 +218,102 @@ public class MyPanel extends JPanel implements MouseListener, MouseMotionListene
 	* und gibt daraufhin den passenden Wahrheitswert zurück, ob sich die Bewegung invertieren muss. 
 	*/
 	private boolean invertX() {
+		return this.invertX(this.banden.get(this.bahnCounter));
+	}
+	private boolean invertX(Bande bande) {
 		// Fragt ab, ob der Ball das Fenster verlassen würde:
-		if(x >= this.width - ball.getWidth(null) || x<0) {
+		if(x >= this.width - ball.getWidth(null) 
+		|| x<0) {
 			return true;
-		} 
-		
+		}
+
 		// Bahnbegrenzungen:
-		if (x <= this.banden.get(this.bahnCounter).startX + 20) {
-			return true;
-		} else if (x >= this.banden.get(this.bahnCounter).startX + this.banden.get(this.bahnCounter).height - 40) {
-			return true;
+		if (bande.second != null) {
+			if (isInside(bande, 'x') 
+			&& isInside(bande, 'y')
+			|| isInside(bande.second, 'x') 
+			&& isInside(bande.second, 'y')) {
+				return false;
+			} else {
+				return true;
+			}
+		} else {
+			return !isInside(bande, 'x');
 		}
-		
-		return false;
 	}
+
 	private boolean invertY() {
+		return this.invertY(this.banden.get(this.bahnCounter));
+	} // TODO: Abfrage nach oben (#3, Bahnstück 2)! Problem: größer gleich???
+	private boolean invertY(Bande bande) {
 		// Fragt ab, ob der Ball das Fenster verlassen würde:
-		if(y >= this.width - ball.getWidth(null) || x<0) {
+		if(y >= this.height - ball.getHeight(null) || y<0) {
 			return true;
 		} 
-		
-		// TODO: Bugfixxen
-		if (y <= this.banden.get(this.bahnCounter).startY + 20) {
-			return true;
-		} else if (y >= this.banden.get(this.bahnCounter).startY + this.banden.get(this.bahnCounter).width - 40) {
-			return true;
-		}
 
-		return false;
+		// Bahnbegrenzungen:
+		if (bande.second != null) {
+			if (isInside(bande, 'x') 
+			&& isInside(bande, 'y')
+			|| isInside(bande.second, 'x') 
+			&& isInside(bande.second, 'y')) {
+				return false;
+			} else {
+				return true;
+			}
+		} else {
+			return !isInside(bande, 'y');
+		}
 	}
-	private void isLoch() {
-		int toleranz = 5;
-		if (y >= this.löcher.get(this.bahnCounter).startY - this.löcher.get(this.bahnCounter).width && 
-			y <= this.löcher.get(this.bahnCounter).startY + toleranz &&
-			x >= this.löcher.get(this.bahnCounter).startX - this.löcher.get(this.bahnCounter).height && 
-			x <= this.löcher.get(this.bahnCounter).startX + toleranz) {
-			this.nextCourse();
-		}
 
+
+	private boolean isInside(Bande bande, char direction) {
+		if (direction == 'x') {
+			if (x < bande.startX
+			&& geschwX < 0) {
+				return false;
+			} else if (x + this.ball.getHeight(null) >= bande.startX + bande.height
+			&& geschwX > 0) {
+				return false;
+			}
+		} else if (direction == 'y') {
+			if (y < bande.startY
+			&& geschwY < 0) {
+				return false; 
+			} else if (y + this.ball.getWidth(null) >= bande.startY + bande.width
+			&& geschwY > 0) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+
+	// unnötige Methode, da Java keine optionalen Parameter unterstützt: ?!
+	private void isLoch() {
+		this.isLoch(this.bahnCounter);
+		this.isLoch(this.bahnCounter + 1); 
+		// Bahn darf hierfür maximal aus einem Wasserloch bestehen!
+		// Lässt sich aber einfach erweitern, also: while(Wasserloch){+1}; for(ergebnis der while){isLoch(for int)}
+		
+	}
+	private void isLoch(int index) {
+		Bande loch = this.löcher.get(index);
+
+		if (y >= (int) loch.startY - ball.getWidth(null) && 
+			y <= (int) loch.startY + loch.width && 
+			x >= (int) loch.startX - ball.getHeight(null) && 
+			x <= (int) loch.startX + loch.height) {
+			if (loch.type == 'w') {
+				x = this.banden.get(this.bahnCounter).x;
+				y = this.banden.get(this.bahnCounter).y;
+				geschwX = 0;
+				geschwY = 0;
+				System.out.println("Ball wird zurückgesetzt");
+			} else {
+				this.nextCourse();
+			}
+		}
 	}
 	
 	
@@ -251,14 +323,16 @@ public class MyPanel extends JPanel implements MouseListener, MouseMotionListene
 	 */
 	public void geschwReduzieren()
 	{
+		double langsamer = 0.8;
+		double toleranz = 1 - langsamer;
 		//Geschwindigkeit f�r x-Koordinate
-		if (geschwX > 0 && geschwY != 0)
+		if (geschwX > toleranz && geschwY != 0)
 		{
-			geschwX = geschwX - 1;
+			geschwX = geschwX - langsamer;
 		}
-		else if (geschwX < 0 && geschwY != 0)
+		else if (geschwX < (toleranz * -1) && geschwY != 0)
 		{
-			geschwX = geschwX + 1;
+			geschwX = geschwX + langsamer;
 		}
 		else
 		{
@@ -266,13 +340,13 @@ public class MyPanel extends JPanel implements MouseListener, MouseMotionListene
 		}
 		
 		//Geschwindigkeit f�r y-Koordinate
-		if (geschwY > 0 && geschwX != 0)
+		if (geschwY > toleranz && geschwX != 0)
 		{
-			geschwY = geschwY - 1;
+			geschwY = geschwY - langsamer;
 		}
-		else if (geschwY < 0 && geschwX != 0)
+		else if (geschwY < (toleranz * -1) && geschwX != 0)
 		{
-			geschwY = geschwY + 1;
+			geschwY = geschwY + langsamer;
 		}
 		else
 		{
