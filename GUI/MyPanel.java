@@ -42,12 +42,12 @@ public class MyPanel extends JPanel implements MouseListener, MouseMotionListene
 		return ball;
 	}
 	
-	public int getSchlagzähler1() 
+	public int getSchlagzaehler1() 
 	{
 		return schlagzähler1;
 	}
 
-	public int getSchlagzähler2() 
+	public int getSchlagzaehler2() 
 	{
 		return schlagzähler2;
 	}
@@ -117,7 +117,7 @@ public class MyPanel extends JPanel implements MouseListener, MouseMotionListene
 
         //Bahn 3 erstellen
         this.banden.add(rechteckErstellen(550, 20, 200, 450, g)); //Bahnstück 1
-        this.banden.get(2).second = rechteckErstellen(550, 280, 650, 200, g); //Bahnstück 2
+        this.banden.get(2).second = rechteckErstellen(550, 280, 650, 210, g); //Bahnstück 2
         this.löcher.add(rundesRechteckErstellen(1130, 365, 32, 32, 40, 40, g, "loch")); //Loch
 		this.banden.get(2).x = 650;
 		this.banden.get(2).y = 60; // TODO: werte anpassen lol
@@ -257,6 +257,8 @@ public class MyPanel extends JPanel implements MouseListener, MouseMotionListene
 	 * 
 	 * Ebenso wird die Methode repaint() aufgerufen, welche das Neuzeichnen triggert, sowie die
 	 * neu erstellte Methode geschwReduzieren()
+	 * 
+	 * Diese Methode wird zur Aktualisierung des Fensters aufgerufen.
 	 */
 	@Override
 	public void actionPerformed(ActionEvent e) 
@@ -266,19 +268,21 @@ public class MyPanel extends JPanel implements MouseListener, MouseMotionListene
 			return;
 		}
 
-		if(this.invertX())
-		{
-			geschwX = geschwX * -1;
-		}
+		// if(this.invertX())
+		// {
+		// 	geschwX = geschwX * -1;
+		// }
 		
 		x = (int) Math.floor(x + geschwX);
 		
-		if(this.invertY()) 
-		{
-			geschwY = geschwY * -1;
-		}
+		// if(this.invertY()) 
+		// {
+		// 	geschwY = geschwY * -1;
+		// }
 
 		y = (int) Math.floor(y + geschwY);
+
+		this.bounce();
 		
 		geschwReduzieren();
 		
@@ -287,107 +291,126 @@ public class MyPanel extends JPanel implements MouseListener, MouseMotionListene
 		this.repaint();
 	}
 
-	/* Die beiden folgenden Methoden kontrollieren, ob der Ball an der aktuellen Bahn eine Bande berührt
-	* und gibt daraufhin den passenden Wahrheitswert zurück, ob sich die Bewegung invertieren muss. 
-	*/
-	private boolean invertX() 
-	{
-		return this.invertX(this.banden.get(this.bahnCounter));
-	}
-	
-	private boolean invertX(Bande bande) 
-	{
-		// Fragt ab, ob der Ball das Fenster verlassen würde:
-		if(x >= this.width - ball.getWidth() 
-		|| x<0) 
-		{
-			return true;
+	private void bounce() {
+		if(x >= this.width - ball.width 
+		|| x<0) {
+			this.invert('x');
+		} else if(y >= this.width - ball.width 
+		|| y<0) {
+			this.invert('y');
 		}
 
-		// Bahnbegrenzungen:
-		if (bande.second != null) 
-		{
-			if (isInside(bande, 'x') 
-			&& isInside(bande, 'y')
-			|| isInside(bande.second, 'x') 
-			&& isInside(bande.second, 'y')) 
-			{
-				return false;
-			} 
-			else 
-			{
+		Bande bande = this.banden.get(this.bahnCounter);
+		double[] varianz = this.getVarianz(bande);
+
+		if (this.isInside(bande, 'b')) {
+			return;
+		}
+		
+		if (bande.second != null) {
+			// Logik für mehrteilige Banden
+			boolean skip = false; // TODO: remove
+			double[] varianzSecond = this.getVarianz(bande.second);
+			double[] varianzCombined = new double[8];
+
+			if (this.isInside(bande.second, 'b')) {
+				return;
+			}
+
+			if (isInside(bande, 'b')
+			|| isInside(bande.second, 'b')) {
+				skip = true;
+			}
+
+			for (int i = 0; i < varianz.length; i++) {
+				varianzCombined[i] = varianz[i];
+				varianzCombined[i + 4] = varianzSecond[i];
+			}
+			
+			int smallest = 0;
+			for (int i = 0; i < varianzCombined.length; i++) {
+				if (varianzCombined[smallest] > varianzCombined[i]) {
+					smallest = i;
+				}
+			}
+			if (!skip) {
+				this.invert((int) smallest % 4);
+			}
+		} else {
+			// Logik für einfache Banden
+			int smallest = 0;
+			for (int i = 0; i < varianz.length; i++) {
+				if (varianz[smallest] >= varianz[i]) {
+					smallest = i;
+				}
+			}
+			this.invert(smallest);
+		}
+	}
+
+	private void invert(int p) {
+		switch (p) {
+			case 0:
+				if (geschwX < 0) {
+					this.invert('x');
+				}
+				break;
+			case 1:
+				if (geschwX > 0) {
+					this.invert('x');
+				}
+				break;
+			case 2:
+				if (geschwY < 0) {
+					this.invert('y');
+				}
+				break;
+			case 3:
+				if (geschwY > 0) {
+					this.invert('y');
+				}
+				break;
+		}
+	}
+
+	private void invert(char direction) {
+		if (direction == 'x') {
+			geschwX *= -1;
+		} else {
+			geschwY *= -1;
+		}
+	}
+
+	private double[] getVarianz(Bande bande) {
+		double[] varianz = new double[4]; 
+		varianz[0] = bande.startX - x;
+		varianz[1] = (bande.startX + bande.height) - x - this.ball.width; // irgendwas wird hier falsch berechnet
+		varianz[2] = bande.startY - y;
+		varianz[3] = (bande.startY + bande.width) - y - this.ball.height; // irgendwas wird hier falsch berechnet
+		for (int i = 0; i < varianz.length; i++) {
+			if (varianz[i] < 0) {
+				varianz[i] *= -1;
+			}
+		}
+		return varianz;
+	}
+
+	private boolean isInside(Bande bande, char direction) {
+		if (direction == 'x') {
+			if (this.x > bande.startX
+			&& this.x + this.ball.height < bande.startX + bande.height) {
 				return true;
 			}
-		} 
-		else 
-		{
-			return !isInside(bande, 'x');
-		}
-	}
-
-	private boolean invertY() 
-	{
-		return this.invertY(this.banden.get(this.bahnCounter));
-	} // TODO: Abfrage nach oben (#3, Bahnstück 2)! Problem: größer gleich???
-	
-	private boolean invertY(Bande bande) 
-	{
-		// Fragt ab, ob der Ball das Fenster verlassen würde:
-		if(y >= this.height - ball.getHeight() || y<0) 
-		{
-			return true;
-		} 
-
-		// Bahnbegrenzungen:
-		if (bande.second != null) 
-		{
-			if (isInside(bande, 'x') 
-			&& isInside(bande, 'y')
-			|| isInside(bande.second, 'x') 
-			&& isInside(bande.second, 'y')) 
-			{
-				return false;
-			} 
-			else 
-			{
+		} else if (direction == 'y') {
+			if (this.y > bande.startY
+			&& this.y + this.ball.width < bande.startY + bande.width) {
 				return true;
 			}
-		} 
-		else 
-		{
-			return !isInside(bande, 'y');
+		} else if (direction == 'b') {
+			return isInside(bande, 'x') 
+			&& isInside(bande, 'y');
 		}
-	}
-
-	private boolean isInside(Bande bande, char direction) 
-	{
-		if (direction == 'x') 
-		{
-			if (x < bande.startX
-			&& geschwX < 0) 
-			{
-				return false;
-			} 
-			else if (x + this.ball.getHeight() >= bande.startX + bande.height
-			&& geschwX > 0) 
-			{
-				return false;
-			}
-		} 
-		else if (direction == 'y') 
-		{
-			if (y < bande.startY
-			&& geschwY < 0) 
-			{
-				return false; 
-			} 
-			else if (y + this.ball.getWidth() >= bande.startY + bande.width
-			&& geschwY > 0) 
-			{
-				return false;
-			}
-		}
-		return true;
+		return false;
 	}
 
 	// unnötige Methode, da Java keine optionalen Parameter unterstützt: ?!
@@ -419,6 +442,7 @@ public class MyPanel extends JPanel implements MouseListener, MouseMotionListene
 			} 
 			else 
 			{
+				this.nextCourse();
 				this.nextCourse();
 			}
 		}
