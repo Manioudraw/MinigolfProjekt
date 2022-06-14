@@ -15,7 +15,7 @@ public class Scoreboard extends JLayeredPane
 		this.panel = panel;
 	}
 	
-	public void listeErstellen(List schlaganzahlListe, int schlagzähler1, int schlagzähler2)
+	public void listeErstellen(List schlaganzahlListe, int schlagzaehler1, int schlagzaehler2)
 	{
 		schlaganzahlListe.setLocation(1230, 330);
   		schlaganzahlListe.setSize(255, 45);
@@ -24,8 +24,8 @@ public class Scoreboard extends JLayeredPane
   		schlaganzahlListe.setForeground(Color.white);
   		schlaganzahlListe.setFont(new Font("DialogInput", Font.BOLD, 14));
   		
-  		schlaganzahlListe.add("Schlaganzahl - Spieler " + 1 + ": " + schlagzähler1);
-  		schlaganzahlListe.add("Schlaganzahl - Spieler " + 2 + ": " + schlagzähler2);
+  		schlaganzahlListe.add("Schlaganzahl - Spieler " + 1 + ": " + schlagzaehler1);
+  		schlaganzahlListe.add("Schlaganzahl - Spieler " + 2 + ": " + schlagzaehler2);
   		
 	}
 }

@@ -7,14 +7,14 @@ public class Player
 {
 	int spieleranzahl;
 	int nr;
-	int schlagzähler;
+	int schlagzaehler;
 	Ball ball;
 	
-	Player(Ball ball, Graphics2D g2D, ImageObserver observer, int nr, int schlagzähler, int x, int y)
+	Player(Ball ball, Graphics2D g2D, ImageObserver observer, int nr, int schlagzaehler, int x, int y)
 	{
 		this.ball = ball;
 		this.nr = nr;
-		this.schlagzähler = schlagzähler;
+		this.schlagzaehler = schlagzaehler;
 		
 		ball.ballZeichnen(g2D, x, y, observer);
 	}

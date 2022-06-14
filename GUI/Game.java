@@ -16,19 +16,19 @@ public class Game
 	Game(MyPanel panel, Graphics2D g2D, ImageObserver observer, int ballX, int ballY)
 	{
 		this.panel = panel;
-		playerPrimary = new Player(panel.getBall(), g2D, null, 1, panel.getSchlagzähler1(), ballX, ballY);
-		playerSecondary = new Player(panel.getBall(), g2D, null, 2, panel.getSchlagzähler2(), ballX, ballY-10);
+		playerPrimary = new Player(panel.getBall(), g2D, null, 1, panel.getSchlagzaehler1(), ballX, ballY);
+		playerSecondary = new Player(panel.getBall(), g2D, null, 2, panel.getSchlagzaehler2(), ballX, ballY-10);
 		currentPlayer = playerPrimary;
 	}
 	
 	public void gameloopStarten(Graphics g) throws InterruptedException
 	{
-		if(panel.getSchlagzähler1() == -1)
+		if(panel.getSchlagzaehler1() == -1)
 		{
 //			System.out.println("Spieler 1");
 			winnerAnzeige(g, 1);
 		}
-		else if(panel.getSchlagzähler2() == -1)
+		else if(panel.getSchlagzaehler2() == -1)
 		{
 //			System.out.println("Spieler 2");
 			winnerAnzeige(g, 2);
