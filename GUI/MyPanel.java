@@ -148,9 +148,13 @@ public class MyPanel extends JPanel implements MouseListener, MouseMotionListene
   		{
   			try 
   			{
-				game.gameloopStarten(g);
+				game.gameloopStarten(g2D, this);
 			} 
   			catch (InterruptedException e) 
+  			{
+				e.printStackTrace();
+			} 
+  			catch (Exception e) 
   			{
 				e.printStackTrace();
 			}

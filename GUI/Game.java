@@ -3,6 +3,10 @@ package GUI;
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.ImageObserver;
+import java.net.MalformedURLException;
+import java.net.URL;
+
+import javax.swing.ImageIcon;
 
 
 public class Game 
@@ -21,17 +25,17 @@ public class Game
 		currentPlayer = playerPrimary;
 	}
 	
-	public void gameloopStarten(Graphics g) throws InterruptedException
+	public void gameloopStarten(Graphics2D g2D, MyPanel panel) throws InterruptedException, MalformedURLException
 	{
 		if(panel.getSchlagzähler1() == -1)
 		{
 //			System.out.println("Spieler 1");
-			winnerAnzeige(g, 1);
+			winnerAnzeige(g2D, 1, panel);
 		}
 		else if(panel.getSchlagzähler2() == -1)
 		{
 //			System.out.println("Spieler 2");
-			winnerAnzeige(g, 2);
+			winnerAnzeige(g2D, 2, panel);
 		}
 		else
 		{
@@ -39,10 +43,10 @@ public class Game
 		}
 	}
 	
-	private void winnerAnzeige(Graphics g, int spielerNr)
+	private void winnerAnzeige(Graphics2D g2D, int spielerNr, MyPanel panel) throws MalformedURLException
 	{
-		Graphics2D g2D = (Graphics2D) g;
         Rectangle2D.Double free = new Rectangle2D.Double(0, 0, panel.getWidth(), panel.getHeight());
+        Image konfetti = new ImageIcon(new URL("https://acegif.com/wp-content/gif/confetti-27.gif")).getImage();
         
         g2D.setColor(Color.black);
         g2D.fill(free);
@@ -51,10 +55,15 @@ public class Game
         g2D.setColor(Color.white);
         g2D.setFont(new Font("DialogInput", Font.BOLD, 30));
         g2D.drawString("Spieler " + spielerNr +" ist Sieger!", (panel.getWidth() / 2) - 160, panel.getHeight() / 2);
+        
+        
+        g2D.drawImage(konfetti, 0, 0, panel);
 	}
 	
-	private void playerTauschen() 
+	private Player playerTauschen() 
 	{
         this.currentPlayer = (this.currentPlayer == playerPrimary) ? playerSecondary : playerPrimary;
+        
+        return currentPlayer;
     }
 }
