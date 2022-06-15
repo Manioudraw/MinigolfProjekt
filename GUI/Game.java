@@ -2,6 +2,12 @@ package GUI;
 
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
+import java.awt.image.ImageObserver;
+import java.net.MalformedURLException;
+import java.net.URL;
+
+import javax.swing.ImageIcon;
+
 
 public class Game 
 {
@@ -9,23 +15,38 @@ public class Game
 	
 	Player playerPrimary;
 	Player playerSecondary;
-	int gewonnen;
-
-	Graphics2D g2D;
-
-	public Game (Graphics2D g2D, MyPanel panel) {
-		this.g2D = g2D;
+	Player currentPlayer;
+	
+	Game(MyPanel panel, Graphics2D g2D, ImageObserver observer, int ballX, int ballY)
+	{
 		this.panel = panel;
-		playerPrimary = new Player(1);
-		playerSecondary = new Player(2);
-		playerPrimary.toggleAktiverSpieler();
-		this.gewonnen = 0;
+		playerPrimary = new Player(panel.getBall(), g2D, null, 1, panel.getSchlagzähler1(), ballX, ballY);
+		playerSecondary = new Player(panel.getBall(), g2D, null, 2, panel.getSchlagzähler2(), ballX, ballY-10);
+		currentPlayer = playerPrimary;
 	}
 	
-	private void winnerAnzeige(Graphics g, int spielerNr)
+	public void gameloopStarten(Graphics2D g2D, MyPanel panel) throws InterruptedException, MalformedURLException
 	{
-		Graphics2D g2D = (Graphics2D) g;
-        Rectangle2D.Double free = new Rectangle2D.Double(0, 0, this.panel.getWidth(), this.panel.getHeight());
+		if(panel.getSchlagzähler1() == -1)
+		{
+//			System.out.println("Spieler 1");
+			winnerAnzeige(g2D, 1, panel);
+		}
+		else if(panel.getSchlagzähler2() == -1)
+		{
+//			System.out.println("Spieler 2");
+			winnerAnzeige(g2D, 2, panel);
+		}
+		else
+		{
+			playerTauschen();
+		}
+	}
+	
+	private void winnerAnzeige(Graphics2D g2D, int spielerNr, MyPanel panel) throws MalformedURLException
+	{
+        Rectangle2D.Double free = new Rectangle2D.Double(0, 0, panel.getWidth(), panel.getHeight());
+        Image konfetti = new ImageIcon(new URL("https://acegif.com/wp-content/gif/confetti-27.gif")).getImage();
         
         g2D.setColor(Color.black);
         g2D.fill(free);
@@ -34,39 +55,15 @@ public class Game
         g2D.setColor(Color.white);
         g2D.setFont(new Font("DialogInput", Font.BOLD, 30));
         g2D.drawString("Spieler " + spielerNr +" ist Sieger!", (panel.getWidth() / 2) - 160, panel.getHeight() / 2);
+        
+        
+        g2D.drawImage(konfetti, 0, 0, panel);
 	}
 	
-	public void nextCourse(int x, int y) {
-		if(this.playerPrimary.bahnCounter == 2 || this.playerSecondary.bahnCounter == 2) {
-			if (this.gewonnen == 2) {
-				if (this.playerPrimary.schlagzaehler < this.playerSecondary.schlagzaehler) {
-					winnerAnzeige(g2D, 1);
-					System.out.println("Spieler eins hat gewonnen! " + this.playerPrimary.schlagzaehler + ": " + this.playerSecondary.schlagzaehler);
-				} else {
-					winnerAnzeige(g2D, 2);
-					System.out.println("Spieler zwei hat gewonnen! " + this.playerPrimary.schlagzaehler + ": " + this.playerSecondary.schlagzaehler);
-				}
-				this.gewonnen = 0;
-				this.playerPrimary.schlagzaehler = 0;
-				this.playerSecondary.schlagzaehler = 0;
-			} 
-		}
-		this.getAktPlayer().nextCourse(x, y);
-
-        this.playerPrimary.toggleAktiverSpieler();
-		this.playerSecondary.toggleAktiverSpieler();
+	private Player playerTauschen() 
+	{
+        this.currentPlayer = (this.currentPlayer == playerPrimary) ? playerSecondary : playerPrimary;
+        
+        return currentPlayer;
     }
-
-	public void zeichne(Graphics2D g2D) {
-		this.playerPrimary.zeichneBall(g2D);
-		this.playerSecondary.zeichneBall(g2D);
-	}
-
-	public Player getAktPlayer() {
-		if (playerPrimary.aktiverSpieler) {
-			return playerPrimary;
-		} else {
-			return playerSecondary;
-		}
-	}
 }

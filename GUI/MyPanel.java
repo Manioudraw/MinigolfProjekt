@@ -120,15 +120,25 @@ public class MyPanel extends JPanel implements MouseListener, MouseMotionListene
         
         //Scoreboard
         score = new Scoreboard(this);
-		score.setPreferredSize(new Dimension(0, 0));
-  		score.setLayout(new GridBagLayout());
-  		
-  		List schlaganzahlListe = new List();
-  		
-  		score.add(schlaganzahlListe);
+  		score.scoreZeichnen(g2D, width, height, schlagzähler1, schlagzähler2, 1);
   		this.add(score);
   		
   		score.listeErstellen(schlaganzahlListe, this.game.playerSecondary.schlagzaehler, this.game.playerPrimary.schlagzaehler);
+  		if(jederSchlag > 1)
+  		{
+  			try 
+  			{
+				game.gameloopStarten(g2D, this);
+			} 
+  			catch (InterruptedException e) 
+  			{
+				e.printStackTrace();
+			} 
+  			catch (Exception e) 
+  			{
+				e.printStackTrace();
+			}
+  		}
 	}
 	
 	public Bande rechteckErstellen(double x, double y, double height, double width, Graphics g)
