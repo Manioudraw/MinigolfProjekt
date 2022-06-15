@@ -11,8 +11,9 @@ import javax.swing.*;
 public class MyPanel extends JPanel implements MouseListener, MouseMotionListener, ActionListener
 {
 	Timer timer;
+	Ball ball;
 	Scoreboard score;
-	GUI.Game game = null;
+	Game game;
 	
 	//neu: Spieler - Winning-Condition
 	boolean winning;
@@ -21,14 +22,25 @@ public class MyPanel extends JPanel implements MouseListener, MouseMotionListene
 	
 	//Variablen f�r die 2 Positionen der Maus, um die Linie zu zeichnen
 	private int startX, startY, endX, endY;
+	//Variablen f�r die Bewegung des Balls
+	private int x = 80, y = 130;
+	//Variablen für Geschwindigkeit des Balls in Fließkommzahl für "genauere" Bewegung
+	private double geschwX = 0.0, geschwY = 0.0;
 	//Variablen für die Fenstergröße:
-	private int width = 1525, height = 785;
+	private int width = 1525, height = 785, bahnCounter = 0, lochCounter = 0;
 	
 	//Scoreboard
 	private int schlagzähler1 = 0, schlagzähler2 = 0;
 
 	ArrayList<Bande> banden = new ArrayList<Bande>();
 	ArrayList<Bande> löcher = new ArrayList<Bande>();
+	
+	
+	//neu > Getter-Methoden
+	public Ball getBall() 
+	{
+		return ball;
+	}
 	
 	public int getSchlagzaehler1() 
 	{
@@ -42,17 +54,29 @@ public class MyPanel extends JPanel implements MouseListener, MouseMotionListene
 	
 	public int getLochCounter() 
 	{
-		return this.game.getAktPlayer().lochCounter;
+		return lochCounter;
 	}
 	
 	public int getJederSchlag() 
 	{
 		return jederSchlag;
 	}
+
+	public int getWidth() 
+	{
+		return width;
+	}
+	
+	public int getHeight() 
+	{
+		return height;
+	}
 	
 	
 	MyPanel()
 	{
+		ball = new Ball();
+		
 		//Gr��e des Fensters
 		this.setPreferredSize(new Dimension(this.width, this.height));
 		this.setBackground(new Color(255, 246, 143));
@@ -105,13 +129,10 @@ public class MyPanel extends JPanel implements MouseListener, MouseMotionListene
 
         //spielfeldInBufferedImage();
         //g2D.drawImage(bufSpielfeld, null, 0, 0);
-		
-        //neu > Game & damit auch Bälle erstellen
-		if (game == null) {
-			this.game = new GUI.Game(g2D, this);
-		}
-		game.zeichne(g2D);
 
+        //neu > Game & damit auch Bälle erstellen
+        game = new Game(this, g2D, null, x, y);
+        
         //Linie erstellen
         g2D.setPaintMode();
         g2D.setPaint(Color.white);
@@ -123,20 +144,32 @@ public class MyPanel extends JPanel implements MouseListener, MouseMotionListene
   		score.scoreZeichnen(g2D, width, height, schlagzähler1, schlagzähler2, 1);
   		this.add(score);
   		
+<<<<<<< HEAD
   		score.listeErstellen(schlaganzahlListe, this.game.playerSecondary.schlagzaehler, this.game.playerPrimary.schlagzaehler);
   		if(jederSchlag > 1)
   		{
   			try 
   			{
 				game.gameloopStarten(g2D, this);
+=======
+  		score.listeErstellen(schlaganzahlListe, schlagzähler1, schlagzähler2);
+  		
+  		if(jederSchlag > 1)
+  		{
+  			try {
+				game.gameloopStarten(g);
+>>>>>>> parent of 38997ab (Soweit ganz gut :))
 			} 
   			catch (InterruptedException e) 
   			{
 				e.printStackTrace();
+<<<<<<< HEAD
 			} 
   			catch (Exception e) 
   			{
 				e.printStackTrace();
+=======
+>>>>>>> parent of 38997ab (Soweit ganz gut :))
 			}
   		}
 	}
@@ -185,15 +218,24 @@ public class MyPanel extends JPanel implements MouseListener, MouseMotionListene
 
 	public void nextCourse() 
 	{
-		int i = this.game.getAktPlayer().bahnCounter + 1;
-		if (i > 2) {
-			i = 0;
-			this.game.gewonnen++;
+		this.bahnCounter++;
+		this.lochCounter++;
+		
+		if (this.bahnCounter > 2) 
+		{
+			this.bahnCounter = 0;
 		}
+		if (this.lochCounter > 3) 
+		{
+			this.lochCounter = 0;
+		}
+		
+		// Teleportiert den Ball zum neuen Startpunkt:
+		this.x = (int) this.banden.get(bahnCounter).x;
+		this.y = (int) this.banden.get(bahnCounter).y;
 
-		Bande bande = this.banden.get( i );
-
-		this.game.nextCourse(bande.x, bande.y);
+		geschwX = 0;
+		geschwY = 0;
 	}
 	
 	/*
@@ -237,10 +279,19 @@ public class MyPanel extends JPanel implements MouseListener, MouseMotionListene
 			return;
 		}
 
-		Ball ball = game.getAktPlayer().getBall();
-		ball.x = (int) Math.floor(ball.x + ball.geschwX);
+		// if(this.invertX())
+		// {
+		// 	geschwX = geschwX * -1;
+		// }
+		
+		x = (int) Math.floor(x + geschwX);
+		
+		// if(this.invertY()) 
+		// {
+		// 	geschwY = geschwY * -1;
+		// }
 
-		ball.y = (int) Math.floor(ball.y + ball.geschwY);
+		y = (int) Math.floor(y + geschwY);
 
 		this.bounce();
 		
@@ -252,17 +303,15 @@ public class MyPanel extends JPanel implements MouseListener, MouseMotionListene
 	}
 
 	private void bounce() {
-		Ball ball = game.getAktPlayer().getBall();
-
-		if(ball.x >= this.width - ball.width 
-		|| ball.x < 0) {
+		if(x >= this.width - ball.width 
+		|| x<0) {
 			this.invert('x');
-		} else if(ball.y >= this.width - ball.width 
-		|| ball.y < 0) {
+		} else if(y >= this.width - ball.width 
+		|| y<0) {
 			this.invert('y');
 		}
 
-		Bande bande = this.banden.get(this.game.getAktPlayer().bahnCounter);
+		Bande bande = this.banden.get(this.bahnCounter);
 		double[] varianz = this.getVarianz(bande);
 
 		if (this.isInside(bande, 'b')) {
@@ -271,12 +320,17 @@ public class MyPanel extends JPanel implements MouseListener, MouseMotionListene
 		
 		if (bande.second != null) {
 			// Logik für mehrteilige Banden
+			boolean skip = false; // TODO: remove
 			double[] varianzSecond = this.getVarianz(bande.second);
 			double[] varianzCombined = new double[8];
 
-			if (this.isInside(bande.second, 'b')
-			|| isInside(bande.second, 'b')) {
+			if (this.isInside(bande.second, 'b')) {
 				return;
+			}
+
+			if (isInside(bande, 'b')
+			|| isInside(bande.second, 'b')) {
+				skip = true;
 			}
 
 			for (int i = 0; i < varianz.length; i++) {
@@ -286,14 +340,13 @@ public class MyPanel extends JPanel implements MouseListener, MouseMotionListene
 			
 			int smallest = 0;
 			for (int i = 0; i < varianzCombined.length; i++) {
-				if (varianzCombined[smallest] >= varianzCombined[i]) {
+				if (varianzCombined[smallest] > varianzCombined[i]) {
 					smallest = i;
 				}
 			}
-			if (smallest == 8) {
-				System.out.println("Smallest ist richtig!"); // TODO: Ist es nicht! (Zumindest für Second der letzten Bahn :)
+			if (!skip) {
+				this.invert((int) smallest % 4);
 			}
-			this.invert((int) smallest % 4);
 		} else {
 			// Logik für einfache Banden
 			int smallest = 0;
@@ -307,47 +360,44 @@ public class MyPanel extends JPanel implements MouseListener, MouseMotionListene
 	}
 
 	private void invert(int p) {
-		Ball ball = game.getAktPlayer().getBall();
 		switch (p) {
 			case 0:
-				if (ball.geschwX < 0) {
-					this.invert('x', ball);
+				if (geschwX < 0) {
+					this.invert('x');
 				}
 				break;
 			case 1:
-				if (ball.geschwX > 0) {
-					this.invert('x', ball);
+				if (geschwX > 0) {
+					this.invert('x');
 				}
 				break;
 			case 2:
-				if (ball.geschwY < 0) {
-					this.invert('y', ball);
+				if (geschwY < 0) {
+					this.invert('y');
 				}
 				break;
 			case 3:
-				if (ball.geschwY > 0) {
-					this.invert('y', ball);
+				if (geschwY > 0) {
+					this.invert('y');
 				}
 				break;
 		}
 	}
 
-	private void invert(char direction, Ball pBall) {
+	private void invert(char direction) {
 		if (direction == 'x') {
-			pBall.geschwX *= -1;
+			geschwX *= -1;
 		} else {
-			pBall.geschwY *= -1;
+			geschwY *= -1;
 		}
 	}
 
 	private double[] getVarianz(Bande bande) {
 		double[] varianz = new double[4]; 
-		Ball ball = game.getAktPlayer().getBall();
-
-		varianz[0] = bande.startX - ball.x;
-		varianz[1] = (bande.startX + bande.height) - ball.x - ball.width; // irgendwas wird hier falsch berechnet
-		varianz[2] = bande.startY - ball.y;
-		varianz[3] = (bande.startY + bande.width) - ball.y - ball.height; // irgendwas wird hier falsch berechnet
+		varianz[0] = bande.startX - x;
+		varianz[1] = (bande.startX + bande.height) - x - this.ball.width; // irgendwas wird hier falsch berechnet
+		varianz[2] = bande.startY - y;
+		varianz[3] = (bande.startY + bande.width) - y - this.ball.height; // irgendwas wird hier falsch berechnet
 		for (int i = 0; i < varianz.length; i++) {
 			if (varianz[i] < 0) {
 				varianz[i] *= -1;
@@ -357,16 +407,14 @@ public class MyPanel extends JPanel implements MouseListener, MouseMotionListene
 	}
 
 	private boolean isInside(Bande bande, char direction) {
-		Ball ball = game.getAktPlayer().getBall();
-
 		if (direction == 'x') {
-			if (ball.x > bande.startX
-			&& ball.x + ball.height < bande.startX + bande.height) {
+			if (this.x > bande.startX
+			&& this.x + this.ball.height < bande.startX + bande.height) {
 				return true;
 			}
 		} else if (direction == 'y') {
-			if (ball.y > bande.startY
-			&& ball.y + ball.width < bande.startY + bande.width) {
+			if (this.y > bande.startY
+			&& this.y + this.ball.width < bande.startY + bande.width) {
 				return true;
 			}
 		} else if (direction == 'b') {
@@ -379,8 +427,8 @@ public class MyPanel extends JPanel implements MouseListener, MouseMotionListene
 	// unnötige Methode, da Java keine optionalen Parameter unterstützt: ?!
 	private void isLoch() 
 	{
-		this.isLoch(this.game.getAktPlayer().bahnCounter);
-		this.isLoch(this.game.getAktPlayer().bahnCounter + 1); 
+		this.isLoch(this.bahnCounter);
+		this.isLoch(this.bahnCounter + 1); 
 		// Bahn darf hierfür maximal aus einem Wasserloch bestehen!
 		// Lässt sich aber einfach erweitern, also: while(Wasserloch){+1}; for(ergebnis der while){isLoch(for int)}
 		
@@ -389,23 +437,23 @@ public class MyPanel extends JPanel implements MouseListener, MouseMotionListene
 	private void isLoch(int index) 
 	{
 		Bande loch = this.löcher.get(index);
-		Ball ball = game.getAktPlayer().getBall();
 
-		if (ball.y >= (int) loch.startY - ball.getWidth() && 
-			ball.y <= (int) loch.startY + loch.width && 
-			ball.x >= (int) loch.startX - ball.getHeight() && 
-			ball.x <= (int) loch.startX + loch.height) 
+		if (y >= (int) loch.startY - ball.getWidth() && 
+			y <= (int) loch.startY + loch.width && 
+			x >= (int) loch.startX - ball.getHeight() && 
+			x <= (int) loch.startX + loch.height) 
 		{
 			if (loch.type == 'w') 
 			{
-				ball.x = this.banden.get(this.game.getAktPlayer().bahnCounter).x;
-				ball.y = this.banden.get(this.game.getAktPlayer().bahnCounter).y;
-				ball.geschwX = 0;
-				ball.geschwY = 0;
+				x = this.banden.get(this.bahnCounter).x;
+				y = this.banden.get(this.bahnCounter).y;
+				geschwX = 0;
+				geschwY = 0;
 				System.out.println("Ball wird zurückgesetzt");
 			} 
 			else 
 			{
+				this.nextCourse();
 				this.nextCourse();
 			}
 		}
@@ -419,41 +467,62 @@ public class MyPanel extends JPanel implements MouseListener, MouseMotionListene
 	{
 		double langsamer = 0.8;
 		double toleranz = 1 - langsamer;
-		Ball ball = game.getAktPlayer().getBall();
-
 		//Geschwindigkeit f�r x-Koordinate
-		if (ball.geschwX > toleranz && ball.geschwY != 0)
+		if (geschwX > toleranz && geschwY != 0)
 		{
-			ball.geschwX = ball.geschwX - langsamer;
+			geschwX = geschwX - langsamer;
 		}
-		else if (ball.geschwX < (toleranz * -1) && ball.geschwY != 0)
+		else if (geschwX < (toleranz * -1) && geschwY != 0)
 		{
-			ball.geschwX = ball.geschwX + langsamer;
+			geschwX = geschwX + langsamer;
 		}
 		else
 		{
-			ball.geschwX = 0;
+			geschwX = 0;
 		}
 		
 		//Geschwindigkeit f�r y-Koordinate
-		if (ball.geschwY > toleranz && ball.geschwX != 0)
+		if (geschwY > toleranz && geschwX != 0)
 		{
-			ball.geschwY = ball.geschwY - langsamer;
+			geschwY = geschwY - langsamer;
 		}
-		else if (ball.geschwY < (toleranz * -1) && ball.geschwX != 0)
+		else if (geschwY < (toleranz * -1) && geschwX != 0)
 		{
-			ball.geschwY = ball.geschwY + langsamer;
+			geschwY = geschwY + langsamer;
 		}
 		else
 		{
-			ball.geschwY = 0;
+			geschwY = 0;
 		}
 	}
 	
 	//neu > Scoreboard & für Winning-Condition
 	public void schlagzahlHochzählen()
 	{
-		this.game.getAktPlayer().schlagzaehler++;
+		//Scoreboard
+		if(lochCounter != 3)
+		{
+			jederSchlag++;
+			
+			if(jederSchlag % 2 != 0)
+			{
+				schlagzähler1++;
+			}
+			else
+			{
+				schlagzähler2++;
+			}
+		}
+		else
+		{
+			winning = true;
+			
+			endstandOne = schlagzähler1;
+			endstandTwo = schlagzähler2;
+			
+			schlagzähler1 = -1;
+			schlagzähler2 = -1;
+		}
 	}
 	
 	/*
@@ -465,31 +534,29 @@ public class MyPanel extends JPanel implements MouseListener, MouseMotionListene
 	@Override
 	public void mouseReleased(MouseEvent e) 
 	{
-		Ball ball = game.getAktPlayer().getBall();
-
 		//Bewegung nach unten rechts
 		if (endX >= startX && endY >= startY)
 		{
-			ball.geschwX = (int) (Math.sqrt(endX-startX));
-			ball.geschwY = (int) (Math.sqrt(endY-startY));
+			geschwX = (int) (Math.sqrt(endX-startX));
+			geschwY = (int) (Math.sqrt(endY-startY));
 		}
 		//Bewegung nach oben links
 		else if (endX <= startX && endY <= startY)
 		{
-			ball.geschwX = ((int) (Math.sqrt(startX-endX))) * -1;
-			ball.geschwY = ((int) (Math.sqrt(startY-endY))) * -1;
+			geschwX = ((int) (Math.sqrt(startX-endX))) * -1;
+			geschwY = ((int) (Math.sqrt(startY-endY))) * -1;
 		}
 		//Bewegung nach unten links
 		else if (endX <= startX && endY >= startY)
 		{
-			ball.geschwX = ((int) (Math.sqrt(startX-endX))) * -1;
-			ball.geschwY = ((int) (Math.sqrt(endY-startY)));
+			geschwX = ((int) (Math.sqrt(startX-endX))) * -1;
+			geschwY = ((int) (Math.sqrt(endY-startY)));
 		}
 		//Bewegung nach oben rechts
 		else if (endX >= startX && endY <= startY)
 		{
-			ball.geschwX = ((int) (Math.sqrt(endX-startX)));
-			ball.geschwY = ((int) (Math.sqrt(startY-endY))) * -1;
+			geschwX = ((int) (Math.sqrt(endX-startX)));
+			geschwY = ((int) (Math.sqrt(startY-endY))) * -1;
 		}
 		
 		schlagzahlHochzählen();

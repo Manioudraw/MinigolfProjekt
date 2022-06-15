@@ -10,10 +10,6 @@ public class Ball
 	Image ball;
 	int width;
 	int height;
-	//Variablen f�r die Bewegung des Balls
-	public int x = 80, y = 130;
-	//Variablen für Geschwindigkeit des Balls in Fließkommzahl für "genauere" Bewegung
-	public double geschwX = 0.0, geschwY = 0.0;
 	
 	Ball()
 	{
@@ -23,14 +19,9 @@ public class Ball
 		height = ball.getHeight(null);
 	}
 	
-	public void ballZeichnen(Graphics2D g2D)
+	public void ballZeichnen(Graphics2D g2D, int x, int y, ImageObserver observer)
 	{
-		g2D.drawImage(ball, x, y, null);
-	}
-
-	public void setKoords(int pX, int pY) {
-		this.x = pX;
-		this.y = pY;
+		g2D.drawImage(ball, x, y, observer);
 	}
 	
 	public int getWidth()

@@ -3,7 +3,10 @@ package GUI;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+<<<<<<< HEAD
 import java.awt.geom.Rectangle2D;
+=======
+>>>>>>> parent of 38997ab (Soweit ganz gut :))
 
 import javax.swing.*;
 
