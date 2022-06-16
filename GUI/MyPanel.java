@@ -5,6 +5,7 @@ import java.awt.event.*;
 import java.util.ArrayList;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.RoundRectangle2D;
+import java.net.MalformedURLException;
 
 import javax.swing.*;
 
@@ -78,6 +79,11 @@ public class MyPanel extends JPanel implements MouseListener, MouseMotionListene
 
         Graphics2D g2D = (Graphics2D) g;
 
+         //neu > Game & damit auch Bälle erstellen
+		if (game == null) {
+			this.game = new GUI.Game(this);
+		}
+        
         //Bahn 1 erstellen
         this.banden.add(rechteckErstellen(20, 20, 500, 250, g)); //Bahn
         this.löcher.add(rundesRechteckErstellen(447, 130, 32, 32, 40, 40, g, "loch")); //Loch
@@ -106,12 +112,8 @@ public class MyPanel extends JPanel implements MouseListener, MouseMotionListene
         //spielfeldInBufferedImage();
         //g2D.drawImage(bufSpielfeld, null, 0, 0);
 		
-        //neu > Game & damit auch Bälle erstellen
-		if (game == null) {
-			this.game = new GUI.Game(g2D, this);
-		}
-		game.zeichne(g2D);
-
+        game.zeichne(g2D);
+		
         //Linie erstellen
         g2D.setPaintMode();
         g2D.setPaint(Color.white);
@@ -120,15 +122,31 @@ public class MyPanel extends JPanel implements MouseListener, MouseMotionListene
         
         //Scoreboard
         score = new Scoreboard(this);
-		score.setPreferredSize(new Dimension(0, 0));
-  		score.setLayout(new GridBagLayout());
-  		
-  		List schlaganzahlListe = new List();
-  		
-  		score.add(schlaganzahlListe);
+  		score.scoreZeichnen(g2D, width, height, this.game.playerPrimary.schlagzaehler, this.game.playerSecondary.schlagzaehler, 1);
   		this.add(score);
   		
-  		score.listeErstellen(schlaganzahlListe, this.game.playerSecondary.schlagzaehler, this.game.playerPrimary.schlagzaehler);
+  		if(game.winner == 1)
+		{
+			try 
+			{
+				game.winnerAnzeige(g2D, 1);
+			} 
+			catch (MalformedURLException e) 
+			{
+				e.printStackTrace();
+			}
+		}
+		else if(game.winner == 2)
+		{
+			try 
+			{
+				game.winnerAnzeige(g2D, 2);
+			} 
+			catch (MalformedURLException e) 
+			{
+				e.printStackTrace();
+			} 
+		}
 	}
 	
 	public Bande rechteckErstellen(double x, double y, double height, double width, Graphics g)
@@ -229,13 +247,10 @@ public class MyPanel extends JPanel implements MouseListener, MouseMotionListene
 
 		Ball ball = game.getAktPlayer().getBall();
 		ball.x = (int) Math.floor(ball.x + ball.geschwX);
-
 		ball.y = (int) Math.floor(ball.y + ball.geschwY);
 
 		this.bounce();
-		
 		geschwReduzieren();
-		
 		this.isLoch();
 		
 		this.repaint();
