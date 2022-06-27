@@ -3,6 +3,8 @@ package GUI;
 import java.awt.Graphics2D;
 import java.awt.image.ImageObserver;
 
+import Ballogik.Ball;
+
 public class Player 
 {
 	int spieleranzahl;

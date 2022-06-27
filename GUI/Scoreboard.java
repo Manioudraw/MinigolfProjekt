@@ -14,7 +14,7 @@ public class Scoreboard extends JLayeredPane
 		this.panel = panel;
 	}
 	
-	public void scoreZeichnen(Graphics2D g2D, int width, int height, int schlagz‰hler1, int schlagz‰hler2, int spielerNr)
+	public void scoreZeichnen(Graphics2D g2D, int width, int height, int schlagz√§hler1, int schlagz√§hler2, int spielerNr)
 	{
         Rectangle2D.Double scoreAnzeige = new Rectangle2D.Double(1230, 330, 255, 45);
         
@@ -24,8 +24,8 @@ public class Scoreboard extends JLayeredPane
         
         g2D.setColor(Color.white);
         g2D.setFont(new Font("DialogInput", Font.BOLD, 15));
-        g2D.drawString("Schlaganzahl - Spieler " + spielerNr + ": " + schlagz‰hler1, 1230+5, 330+15);
-        g2D.drawString("Schlaganzahl - Spieler " + (spielerNr + 1) + ": " + schlagz‰hler2, 1230+5, 330+35);
+        g2D.drawString("Schlaganzahl - Spieler " + spielerNr + ": " + schlagz√§hler1, 1230+5, 330+15);
+        g2D.drawString("Schlaganzahl - Spieler " + (spielerNr + 1) + ": " + schlagz√§hler2, 1230+5, 330+35);
 
 	}
 }

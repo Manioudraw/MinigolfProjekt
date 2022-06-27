@@ -1,7 +1,6 @@
-package GUI;
+package Ballogik;
 
 import java.awt.*;
-import java.awt.image.*;
 
 import javax.swing.*;
 
@@ -15,7 +14,7 @@ public class Ball
 	//Variablen für Geschwindigkeit des Balls in Fließkommzahl für "genauere" Bewegung
 	public double geschwX = 0.0, geschwY = 0.0;
 	
-	Ball()
+	public Ball()
 	{
 		ball = new ImageIcon("BallSelbstgemacht.png").getImage();
 		

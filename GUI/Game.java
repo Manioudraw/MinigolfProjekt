@@ -15,7 +15,7 @@ public class Game
 	
 	Player playerPrimary;
 	Player playerSecondary;
-	int gewonnen;
+	public int gewonnen;
 	
 	int winner = 0;
 
